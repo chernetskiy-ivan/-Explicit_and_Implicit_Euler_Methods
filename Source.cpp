@@ -24,12 +24,11 @@ double findStep(double* vector_F) {
 	return tmin;
 }
 
-double* makeStep(double* vector_F, double* vector_U, double t) {
+void makeStep(double* vector_F, double* vector_U, double t) {
 	for (int i = 0; i < 2; i++)
 	{
-		vector_U[i] = vector_U[i] + t * vector_F[i];			//выполняем правило
+		vector_U[i] = vector_U[i] + t * vector_F[i];			//выполняем шаг
 	}
-	return vector_U;
 }
 
 double find_tk(double tk, double t) {
