@@ -32,7 +32,7 @@ void main() {
 		cout << u[i] << endl;
 	}
 
-	tk = find_tk(tk, tmin);
+	find_tk(&tk, tmin);
 	cout << "следующий шаг: " << tk << endl;
 
 }

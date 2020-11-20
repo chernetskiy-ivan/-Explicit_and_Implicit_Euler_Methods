@@ -31,7 +31,6 @@ void makeStep(double* vector_F, double* vector_U, double t) {
 	}
 }
 
-double find_tk(double tk, double t) {
-	tk = tk + t;
-	return tk;
+void find_tk(double* tk, double t) {
+	*tk = *tk + t;
 }
