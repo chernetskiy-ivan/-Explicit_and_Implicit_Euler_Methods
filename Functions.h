@@ -2,7 +2,7 @@
 #include<iostream>
 #include<math.h>
 
-double* Function(double* vector_F, double* vector_U);
+void Function(double* vector_F, double* vector_U);
 
 double findStep(double* vector_F);
 

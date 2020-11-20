@@ -13,6 +13,10 @@ void main() {
 	double T = 1;
 
 	Function(res, u);
+
+	for (int i = 0; i < 2; i++) {
+		cout << res[i] << endl;
+	}
 	
 	tmin = findStep(res);
 	cout << "Вычисленный шаг равен " << tmin << endl;
