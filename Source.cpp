@@ -1,6 +1,5 @@
 #include"Functions.h"
 double eps = 0.001;
-double T = 1;
 double tmax = 0.1;
 
 //подсчет верный
@@ -32,4 +31,9 @@ double* makeStep(double* vector_F, double* vector_U, double t) {
 		vector_U[i] = vector_U[i] + t * vector_F[i];			//выполняем правило
 	}
 	return vector_U;
+}
+
+double find_tk(double tk, double t) {
+	tk = tk + t;
+	return tk;
 }

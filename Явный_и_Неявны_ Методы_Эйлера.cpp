@@ -9,6 +9,8 @@ void main() {
 	double res[2];
 	double u[2] = { 1,0 };
 	double tmin;
+	double tk = 0;
+	double T = 1;
 
 	Function(res, u);
 	
@@ -25,5 +27,8 @@ void main() {
 	for (int i = 0; i < 2; i++) {
 		cout << u[i] << endl;
 	}
+
+	tk = find_tk(tk, tmin);
+	cout << "следующий шаг: " << tk << endl;
 
 }
