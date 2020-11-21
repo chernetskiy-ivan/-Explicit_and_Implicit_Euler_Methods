@@ -34,3 +34,30 @@ void makeStep(double* vector_F, double* vector_U, double t) {
 void find_tk(double* tk, double t) {
 	*tk = *tk + t;
 }
+
+//јлгоритм €вного метода Ёйлера
+void explicit_Euler_method(double* vector_U, double tk, double T, double eps, double tmax) {
+
+	double res[2];
+	double tmin;
+
+	cout << "явный метод Ёйлера" << endl;
+	cout << "u1" << setw(25) << "u2" << setw(25) << "tk" << endl;
+	int iter = 0;
+	while (tk < T) {
+
+		Function(res, vector_U);
+
+		tmin = findStep(res);
+
+		makeStep(res, vector_U, tmin);
+
+		find_tk(&tk, tmin);
+
+		cout << vector_U[0] << setw(25) << vector_U[1] << setw(25) << tk << endl;
+
+		iter++;
+
+	}
+	cout << endl << "Iteration " << setw(15) << iter << endl;
+}
