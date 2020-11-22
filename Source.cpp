@@ -63,8 +63,244 @@ void explicit_Euler_method(double* vector_U, double tk, double T, double eps, do
 }
 
 
+//не явный метод
 
-//теперь для неявного метода
-void Function_2(double vector_F, double* vector_U) {
-	
+void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int size, double t, double T, double tauMin, double tauMax, double eps, bool strategy, bool type)
+{
+	double* Y = new double[size];
+	double* Ym = new double[size];
+	double* Yp = new double[size];
+	Y = vectorU;
+	Ym = vectorU;
+	Yp = vectorU;
+
+
+	double tauM = tauMin,
+		tau = tauMin;
+
+	bool is = false;
+	double* Eps = new double[size];
+	double tP;
+
+	int count = 0;
+	do
+	{
+		do
+		{
+			tP = t + tau;
+
+			double** matrix_Jacobi = new double* [size];
+			for (int i = 0; i < size; i++)
+				matrix_Jacobi[i] = new double[size + 1];
+
+			double* vectorF = new double[size] {};
+			double* vector = new double[size] {};
+
+			double Neps = 1e-9,
+				NincrementM = 0.01;
+			int Niter = 15;
+
+
+			if (!type)
+				FillVectordF(vectordF, Yp);
+			else
+				vectordF = temp;
+
+			for (int i = 0; i < size; i++)
+				Yp[i] = Y[i] + tau * vectordF[i];
+
+
+			if (!type)
+				NewtonMethod(matrix_Jacobi, vectorF, Yp, vector, size, Niter, NincrementM, Neps);
+
+			for (int i = 0; i < size; i++)
+				Eps[i] = -(tau / (tau + tauM)) * (Yp[i] - Y[i] - (tau / tauM) * (Y[i] - Ym[i]));
+
+			for (int i = 0; i < size; i++)
+				if (Eps[i] > eps) {
+					tau /= 2;
+					tP = t;
+					Yp[i] = Y[i];
+					is = true;
+					break;
+				}
+
+		} while (is);
+
+		double* Tau = new double[size];
+		double tauP = 0;
+
+		if (strategy)
+			QuasiOptimalStrategy(Tau, Eps, size, tau, tauP, eps);
+		else
+			ThreeZoneStrategy(Tau, Eps, size, tau, tauP, eps);
+
+		if (tauP > tauMax)
+			tauP = tauMax;
+
+		cout << setw(20) << Yp[0] << setw(20) << Yp[1] << setw(20) << tP << endl;
+
+		Ym = Y;
+		Y = Yp;
+		tauM = tau;
+		tau = tauP;
+		t = tP;
+
+		count++;
+	} while (t < T);
+
+	cout << "Iter = " << count << endl;
+
+}
+
+void FillVectordF(double* vector_dF, double* vector_U)
+{
+	vector_dF[0] = vector_U[1] - (2 * vector_U[0] + 0.25 * vector_U[1]) * vector_U[0];
+	vector_dF[1] = exp(vector_U[0]) - (vector_U[0] + 2 * vector_U[1]) * vector_U[0];
+}
+
+void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, double* vector_X2, int size, int iter, double increment_M, double eps)
+{
+	/*cout << setw(5) << "Iter"
+		<< setw(20) << "Delta_1" << setw(20) << "Delta_2"
+		<< setw(20) << "X1" << setw(20) << "X2\n";*/
+	double delta1,
+		delta2,
+		max;
+
+	int c = 0;
+	FillMatrixJacobi_II(matrix_Jacobi, vector_dF, vector_U, size, increment_M);
+
+	//PrintMatrix(matrix_Jacobi, size);
+	//cout << endl;
+	while (true)
+	{
+		FillVectordF(vector_dF, vector_U);
+
+		FillMatrixJacobi_II(matrix_Jacobi, vector_dF, vector_U, size, increment_M);
+
+		GaussMethod(matrix_Jacobi, vector_U, vector_X2, size);
+		max = 0;
+
+		FillVectordF(vector_dF, vector_U);
+		for (int i = 0; i < size; i++)
+			if (fabs(vector_dF[i]) > max)
+				max = fabs(vector_dF[i]);
+
+		delta1 = max;
+		max = 0;
+
+		for (int i = 0; i < size; i++)
+		{
+			if (fabs(vector_U[i]) < 1 && fabs(vector_X2[i]) > max)
+				max = fabs(vector_X2[i]);
+			if (fabs(vector_U[i]) >= 1 && fabs(vector_X2[i] / vector_U[i]) > max)
+				max = fabs(vector_X2[i] / vector_U[i]);
+		}
+
+		delta2 = max;
+		/*cout << setw(5) << ++c << setw(20) << delta1 << setw(20) << delta2
+			<< setw(20) << vector_U[0] << setw(20) << vector_U[1] << endl;*/
+		if (delta1 <= eps && delta2 <= eps || c >= iter)
+			break;
+	}
+}
+
+void FillMatrixJacobi_II(double** matrix_Jacobi, double* vector_dF, double* vector_U, int size, double increment_M)
+{
+	double F1, F2;
+	for (int i = 0; i < size; i++)
+		for (int j = 0; j < size; j++)
+		{
+			vector_U[j] += increment_M;
+			FillVectordF(vector_dF, vector_U);
+			F1 = vector_dF[i];
+			vector_U[j] -= increment_M;
+			FillVectordF(vector_dF, vector_U);
+			F2 = vector_dF[i];
+			matrix_Jacobi[i][j] = (F1 - F2) / increment_M;
+			matrix_Jacobi[i][size] = -vector_dF[i];
+		}
+}
+
+void GaussMethod(double** matrix_Jacobi, double* vector_U, double* vector_X2, int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		double max = fabs(matrix_Jacobi[i][i]);
+		int index = i;
+		for (int j = i; j < size; j++)
+			if (fabs(matrix_Jacobi[j][i]) > max)
+			{
+				max = fabs(matrix_Jacobi[j][i]);
+				index = j;
+			}
+
+		if (index != i)
+		{
+			double* temp = matrix_Jacobi[i];
+			matrix_Jacobi[i] = matrix_Jacobi[index];
+			matrix_Jacobi[index] = temp;
+		}
+
+		double mainelement = matrix_Jacobi[i][i];
+		for (int j = 0; j < size + 1; j++)
+			matrix_Jacobi[i][j] /= mainelement;
+
+
+		for (int j = i + 1; j < size; j++)
+		{
+			double temp = matrix_Jacobi[j][i];
+			for (int k = i; k < size + 1; k++)
+				matrix_Jacobi[j][k] -= matrix_Jacobi[i][k] * temp;
+		}
+		//cout << "\nTransformed matrix:\n";
+		//PrintMatrix(matrix_Jacobi, size);
+	}
+
+	for (int i = size - 1; i > 0; i--)
+	{
+		double temp = matrix_Jacobi[i][size];
+		for (int j = i - 1; j >= 0; j--)
+			matrix_Jacobi[j][size] -= matrix_Jacobi[j][i] * temp;
+		//cout << "\n___Reversed Gauss method___\n";
+		//PrintMatrix(matrix_Jacobi, size);
+	}
+
+	for (int i = 0; i < size; ++i)
+		vector_X2[i] = matrix_Jacobi[i][size];
+
+	for (int i = 0; i < size; i++)
+		vector_U[i] += matrix_Jacobi[i][size];
+}
+
+void QuasiOptimalStrategy(double* Tau, double* Eps, int size, double tau, double& tauP, double eps)
+{
+	for (int i = 0; i < size; i++)
+		Tau[i] = sqrt(eps / fabs(Eps[i])) * tau;
+
+	tauP = Tau[0];
+	for (int i = 0; i < size; i++)
+		if (tauP > Tau[i])
+			tauP = Tau[i];
+}
+
+void ThreeZoneStrategy(double* Tau, double* Eps, int size, double tau, double& tauP, double eps)
+{
+	for (int i = 0; i < size; i++)
+	{
+		if (fabs(Eps[i]) > eps)
+			Tau[i] = tau / 2;
+
+		if (eps / 4 < fabs(Eps[i]) <= eps)
+			Tau[i] = tau;
+
+		if (fabs(Eps[i]) <= eps / 4)
+			Tau[i] = tau * 2;
+	}
+
+	tauP = Tau[0];
+	for (int i = 0; i < size; i++)
+		if (tauP > Tau[i])
+			tauP = Tau[i];
 }

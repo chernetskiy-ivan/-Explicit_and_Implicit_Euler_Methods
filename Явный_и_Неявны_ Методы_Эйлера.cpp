@@ -8,40 +8,31 @@ void main() {
 	double tk = 0;
 	double T = 1;
 
+
 	explicit_Euler_method(u,tk,T,0.001,0.1);
 
 	cout << "погнали пробовать сделать неявный метод" << endl;
+	
+	cout << "\n\n\tImplicit Euler method 'Quasi-Optimal Strategy'..\n";
+	cout << setw(20) << "U1" << setw(20) << "U2" << setw(20) << "t" << endl;
 
-	////инициализирую переменные из пункта 2
-	//double tk = 0;
-	//double T = 1;
-	//double u[3] = { 10,22,9 };
-	//double eps = 0.00001;
-	//double taumin = 0.01;
-	//double taumax = 0.05;
+	int size = 2;
+	double* vectordF = new double[size];
+	double* vectorU = new double[size] {1, 0};
+	double* temp = new double[size];
+	bool strategy = true;
+	double t = 0;
+	double tauMin = 0.01;
+	double tauMax = 0.1;
+	double eps = 0.001;
+	ImplicitEulerMethod(vectordF, vectorU, temp, size, t, T, tauMin, tauMax, eps, strategy);
 
-	////начнем со значений
-	//tk = 0;
-	//double vector_Yk[3];
-	//for (int i = 0; i < 3; i++) {
-	//	vector_Yk[i] = u[i];
-	//}
-	//double vector_Yk_prev[3];
-	//for (int i = 0; i < 3; i++) {
-	//	vector_Yk_prev[i] = u[i];
-	//}
-	//double vector_Yk_next[3];
-	//for (int i = 0; i < 3; i++) {
-	//	vector_Yk_next[i] = u[i];
-	//}
-	//double tau_prev, tau;
-	//tau_prev = tau = taumin;
 
-	////вычисляем следующий tk
-	//find_tk(&tk, tau);
+	cout << "\n\n\tImplicit Euler method 'Three Zone Strategy'..\n";
+	cout << setw(20) << "U1" << setw(20) << "U2" << setw(20) << "t" << endl;
 
-	////массив Л1, Л2, Л3
-	//double x[3];
+	strategy = false;
+	ImplicitEulerMethod(vectordF, vectorU, temp, size, t, T, tauMin, tauMax, eps, strategy);
 
 
 }
