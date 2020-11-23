@@ -89,6 +89,7 @@ void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int si
 		{
 			tP = t + tau;
 
+			//приготовлени€ дл€ метода ньютона
 			double** matrix_Jacobi = new double* [size];
 			for (int i = 0; i < size; i++)
 				matrix_Jacobi[i] = new double[size + 1];
@@ -102,10 +103,11 @@ void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int si
 
 
 			if (!type)
-				FillVectordF(vectordF, Yp);
+				Function(vectordF, Yp);
 			else
 				vectordF = temp;
 
+			//разностна€ схема не€вного метода
 			for (int i = 0; i < size; i++)
 				Yp[i] = Y[i] + tau * vectordF[i];
 
@@ -113,6 +115,7 @@ void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int si
 			if (!type)
 				NewtonMethod(matrix_Jacobi, vectorF, Yp, vector, size, Niter, NincrementM, Neps);
 
+			//пасчет массива Ёпсмлонт 
 			for (int i = 0; i < size; i++)
 				Eps[i] = -(tau / (tau + tauM)) * (Yp[i] - Y[i] - (tau / tauM) * (Y[i] - Ym[i]));
 
@@ -161,28 +164,21 @@ void FillVectordF(double* vector_dF, double* vector_U)
 
 void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, double* vector_X2, int size, int iter, double increment_M, double eps)
 {
-	/*cout << setw(5) << "Iter"
-		<< setw(20) << "Delta_1" << setw(20) << "Delta_2"
-		<< setw(20) << "X1" << setw(20) << "X2\n";*/
-	double delta1,
-		delta2,
-		max;
+	double delta1, delta2, max;
 
 	int c = 0;
 	FillMatrixJacobi_II(matrix_Jacobi, vector_dF, vector_U, size, increment_M);
 
-	//PrintMatrix(matrix_Jacobi, size);
-	//cout << endl;
 	while (true)
 	{
-		FillVectordF(vector_dF, vector_U);
+		Function(vector_dF, vector_U);
 
 		FillMatrixJacobi_II(matrix_Jacobi, vector_dF, vector_U, size, increment_M);
 
 		GaussMethod(matrix_Jacobi, vector_U, vector_X2, size);
 		max = 0;
 
-		FillVectordF(vector_dF, vector_U);
+		Function(vector_dF, vector_U);
 		for (int i = 0; i < size; i++)
 			if (fabs(vector_dF[i]) > max)
 				max = fabs(vector_dF[i]);
@@ -199,8 +195,7 @@ void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, d
 		}
 
 		delta2 = max;
-		/*cout << setw(5) << ++c << setw(20) << delta1 << setw(20) << delta2
-			<< setw(20) << vector_U[0] << setw(20) << vector_U[1] << endl;*/
+
 		if (delta1 <= eps && delta2 <= eps || c >= iter)
 			break;
 	}
@@ -208,15 +203,16 @@ void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, d
 
 void FillMatrixJacobi_II(double** matrix_Jacobi, double* vector_dF, double* vector_U, int size, double increment_M)
 {
+	//конечно-разностный метод заполнени€ матрицы €коби
 	double F1, F2;
 	for (int i = 0; i < size; i++)
 		for (int j = 0; j < size; j++)
 		{
 			vector_U[j] += increment_M;
-			FillVectordF(vector_dF, vector_U);
+			Function(vector_dF, vector_U);
 			F1 = vector_dF[i];
 			vector_U[j] -= increment_M;
-			FillVectordF(vector_dF, vector_U);
+			Function(vector_dF, vector_U);
 			F2 = vector_dF[i];
 			matrix_Jacobi[i][j] = (F1 - F2) / increment_M;
 			matrix_Jacobi[i][size] = -vector_dF[i];
@@ -254,8 +250,7 @@ void GaussMethod(double** matrix_Jacobi, double* vector_U, double* vector_X2, in
 			for (int k = i; k < size + 1; k++)
 				matrix_Jacobi[j][k] -= matrix_Jacobi[i][k] * temp;
 		}
-		//cout << "\nTransformed matrix:\n";
-		//PrintMatrix(matrix_Jacobi, size);
+
 	}
 
 	for (int i = size - 1; i > 0; i--)
@@ -263,8 +258,6 @@ void GaussMethod(double** matrix_Jacobi, double* vector_U, double* vector_X2, in
 		double temp = matrix_Jacobi[i][size];
 		for (int j = i - 1; j >= 0; j--)
 			matrix_Jacobi[j][size] -= matrix_Jacobi[j][i] * temp;
-		//cout << "\n___Reversed Gauss method___\n";
-		//PrintMatrix(matrix_Jacobi, size);
 	}
 
 	for (int i = 0; i < size; ++i)
