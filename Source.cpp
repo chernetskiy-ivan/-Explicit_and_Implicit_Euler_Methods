@@ -119,6 +119,7 @@ void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int si
 			for (int i = 0; i < size; i++)
 				Eps[i] = -(tau / (tau + tauM)) * (Yp[i] - Y[i] - (tau / tauM) * (Y[i] - Ym[i]));
 
+			//проверка для перехода к 3 пунтку (tp = t + tau)
 			for (int i = 0; i < size; i++)
 				if (Eps[i] > eps) {
 					tau /= 2;
@@ -133,6 +134,7 @@ void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int si
 		double* Tau = new double[size];
 		double tauP = 0;
 
+		//при первой итерации будет выполняться квази оптимальный метод
 		if (strategy)
 			QuasiOptimalStrategy(Tau, Eps, size, tau, tauP, eps);
 		else
@@ -143,6 +145,7 @@ void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int si
 
 		cout << setw(20) << Yp[0] << setw(20) << Yp[1] << setw(20) << tP << endl;
 
+		//пункт 9 в алгоритме
 		Ym = Y;
 		Y = Yp;
 		tauM = tau;
@@ -156,18 +159,12 @@ void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int si
 
 }
 
-void FillVectordF(double* vector_dF, double* vector_U)
-{
-	vector_dF[0] = vector_U[1] - (2 * vector_U[0] + 0.25 * vector_U[1]) * vector_U[0];
-	vector_dF[1] = exp(vector_U[0]) - (vector_U[0] + 2 * vector_U[1]) * vector_U[0];
-}
-
 void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, double* vector_X2, int size, int iter, double increment_M, double eps)
 {
 	double delta1, delta2, max;
 
 	int c = 0;
-	FillMatrixJacobi_II(matrix_Jacobi, vector_dF, vector_U, size, increment_M);
+	FillMatrixJacobi_II(matrix_Jacobi, vector_dF, vector_U, size, increment_M); //? зачем сейчас если он идет еще раз перед гауссом
 
 	while (true)
 	{
@@ -296,4 +293,32 @@ void ThreeZoneStrategy(double* Tau, double* Eps, int size, double tau, double& t
 	for (int i = 0; i < size; i++)
 		if (tauP > Tau[i])
 			tauP = Tau[i];
+}
+
+//функция подсчета у_штрих
+void Function_Two(double* vector_F, double* vector_U) {
+	double lamda[3] = { 1,1,1 };
+	double A[3][3];
+	double b[3];
+
+	//определение матрицы А
+	A[0][0] = 2 * lamda[0] + 4 * lamda[1];
+	A[1][0] = 2 * (lamda[0] - lamda[1]);
+	A[2][0] = 2 * (lamda[0] - lamda[1]);
+	A[0][1] = 2 * (lamda[0] - lamda[1]);
+	A[1][1] = 2 * lamda[0] + lamda[1] + 3 * lamda[2];
+	A[2][1] = 2 * lamda[0] + lamda[1] - 3 * lamda[2];
+	A[0][2] = 2 * (lamda[0] - lamda[1]);
+	A[1][2] = 2 * lamda[0] + lamda[1] - 3 * lamda[2];
+	A[2][2] = 2 * lamda[0] + lamda[1] + 3 * lamda[2];
+
+	//определение вектора b
+	b[0] = 4 * lamda[0] + 2 * lamda[1];
+	b[1] = 4 * lamda[0] - lamda[1] - 9 * lamda[2];
+	b[2] = 4 * lamda[0] - lamda[1] + 9 * lamda[2];
+
+	//подсчет функции
+	vector_F[0] = ((A[0][0] * vector_U[0] + A[0][1] * vector_U[1] + A[0][2] * vector_U[2]) - b[0]) / 6;
+	vector_F[1] = ((A[1][0] * vector_U[0] + A[1][1] * vector_U[1] + A[1][2] * vector_U[2]) - b[1]) / 6;
+	vector_F[2] = ((A[2][0] * vector_U[0] + A[2][1] * vector_U[1] + A[2][2] * vector_U[2]) - b[2]) / 6;
 }

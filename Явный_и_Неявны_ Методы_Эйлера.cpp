@@ -35,4 +35,12 @@ void main() {
 	ImplicitEulerMethod(vectordF, vectorU, temp, size, t, T, tauMin, tauMax, eps, strategy);
 
 
+	double res[3];
+	double uw[3] = { 10,22,9 };
+
+	Function_Two(res, uw);
+
+	for (int i = 0; i < 3; i++)
+		cout << res[i] << endl;
+
 }

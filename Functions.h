@@ -18,8 +18,6 @@ void explicit_Euler_method(double* vector_U, double tk, double T, double eps, do
 
 void ImplicitEulerMethod(double*, double*, double*, int, double, double, double, double, double, bool, bool type = false);
 
-void FillVectordF(double* vector_dF, double* vector_U);
-
 void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, double* vector_X2, int size, int iter, double increment_M, double eps);
 
 void FillMatrixJacobi_II(double** matrix_Jacobi, double* vector_dF, double* vector_U, int size, double increment_M);
@@ -29,3 +27,5 @@ void GaussMethod(double** matrix_Jacobi, double* vector_U, double* vector_X2, in
 void QuasiOptimalStrategy(double* Tau, double* Eps, int size, double tau, double& tauP, double eps);
 
 void ThreeZoneStrategy(double* Tau, double* Eps, int size, double tau, double& tauP, double eps);
+
+void Function_Two(double* vector_F, double* vector_U);
