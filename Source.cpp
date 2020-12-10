@@ -105,15 +105,14 @@ void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int si
 			if (!type)
 				Function(vectordF, Yp);
 			else
-				vectordF = temp;
+				//vectordF = temp;
+				Function_Two(vectordF, Yp);
 
 			//разностна€ схема не€вного метода
 			for (int i = 0; i < size; i++)
 				Yp[i] = Y[i] + tau * vectordF[i];
 
-
-			if (!type)
-				NewtonMethod(matrix_Jacobi, vectorF, Yp, vector, size, Niter, NincrementM, Neps);
+			NewtonMethod(matrix_Jacobi, vectorF, Yp, vector, size, Niter, NincrementM, Neps, type);
 
 			//пасчет массива Ёпсмлонт 
 			for (int i = 0; i < size; i++)
@@ -142,8 +141,8 @@ void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int si
 
 		if (tauP > tauMax)
 			tauP = tauMax;
-
-		cout << setw(20) << Yp[0] << setw(20) << Yp[1] << setw(20) << tP << endl;
+		if(tP < T)
+			cout << setw(20) << Yp[0] << setw(20) << Yp[1] << setw(20) << tP << endl;
 
 		//пункт 9 в алгоритме
 		Ym = Y;
@@ -155,27 +154,34 @@ void ImplicitEulerMethod(double* vectordF, double* vectorU, double* temp, int si
 		count++;
 	} while (t < T);
 
-	cout << "Iter = " << count << endl;
+	cout << "Iter = " << count - 1 << endl;
 
 }
 
-void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, double* vector_X2, int size, int iter, double increment_M, double eps)
+void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, double* vector_X2, int size, int iter, double increment_M, double eps, bool type)
 {
 	double delta1, delta2, max;
 
 	int c = 0;
-	FillMatrixJacobi_II(matrix_Jacobi, vector_dF, vector_U, size, increment_M); //? зачем сейчас если он идет еще раз перед гауссом
+	//FillMatrixJacobi_II(matrix_Jacobi, vector_dF, vector_U, size, increment_M, type); //? зачем сейчас если он идет еще раз перед гауссом
 
 	while (true)
 	{
-		Function(vector_dF, vector_U);
+		if (!type)
+			Function(vector_dF, vector_U);
+		else
+			Function_Two(vector_dF, vector_U);
 
-		FillMatrixJacobi_II(matrix_Jacobi, vector_dF, vector_U, size, increment_M);
+		FillMatrixJacobi_II(matrix_Jacobi, vector_dF, vector_U, size, increment_M, type);
 
 		GaussMethod(matrix_Jacobi, vector_U, vector_X2, size);
 		max = 0;
 
-		Function(vector_dF, vector_U);
+		if (!type)
+			Function(vector_dF, vector_U);
+		else
+			Function_Two(vector_dF, vector_U);
+
 		for (int i = 0; i < size; i++)
 			if (fabs(vector_dF[i]) > max)
 				max = fabs(vector_dF[i]);
@@ -198,7 +204,7 @@ void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, d
 	}
 }
 
-void FillMatrixJacobi_II(double** matrix_Jacobi, double* vector_dF, double* vector_U, int size, double increment_M)
+void FillMatrixJacobi_II(double** matrix_Jacobi, double* vector_dF, double* vector_U, int size, double increment_M, bool type)
 {
 	//конечно-разностный метод заполнени€ матрицы €коби
 	double F1, F2;
@@ -206,10 +212,16 @@ void FillMatrixJacobi_II(double** matrix_Jacobi, double* vector_dF, double* vect
 		for (int j = 0; j < size; j++)
 		{
 			vector_U[j] += increment_M;
-			Function(vector_dF, vector_U);
+			if (!type)
+				Function(vector_dF, vector_U);
+			else
+				Function_Two(vector_dF, vector_U);
 			F1 = vector_dF[i];
 			vector_U[j] -= increment_M;
-			Function(vector_dF, vector_U);
+			if (!type)
+				Function(vector_dF, vector_U);
+			else
+				Function_Two(vector_dF, vector_U);
 			F2 = vector_dF[i];
 			matrix_Jacobi[i][j] = (F1 - F2) / increment_M;
 			matrix_Jacobi[i][size] = -vector_dF[i];
@@ -297,7 +309,7 @@ void ThreeZoneStrategy(double* Tau, double* Eps, int size, double tau, double& t
 
 //функци€ подсчета у_штрих
 void Function_Two(double* vector_F, double* vector_U) {
-	double lamda[3] = { 1,1,1 };
+	double lamda[3] = { 2000000,430, 850 };
 	double A[3][3];
 	double b[3];
 

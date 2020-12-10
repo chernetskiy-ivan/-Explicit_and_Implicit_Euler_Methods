@@ -16,11 +16,11 @@ void explicit_Euler_method(double* vector_U, double tk, double T, double eps, do
 
 //старт функций для неявного метода Эйлера
 
-void ImplicitEulerMethod(double*, double*, double*, int, double, double, double, double, double, bool, bool type = false);
+void ImplicitEulerMethod(double*, double*, double*, int, double, double, double, double, double, bool, bool);
 
-void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, double* vector_X2, int size, int iter, double increment_M, double eps);
+void NewtonMethod(double** matrix_Jacobi, double* vector_dF, double* vector_U, double* vector_X2, int size, int iter, double increment_M, double eps, bool type);
 
-void FillMatrixJacobi_II(double** matrix_Jacobi, double* vector_dF, double* vector_U, int size, double increment_M);
+void FillMatrixJacobi_II(double** matrix_Jacobi, double* vector_dF, double* vector_U, int size, double increment_M, bool type);
 
 void GaussMethod(double** matrix_Jacobi, double* vector_U, double* vector_X2, int size);
 
@@ -28,4 +28,5 @@ void QuasiOptimalStrategy(double* Tau, double* Eps, int size, double tau, double
 
 void ThreeZoneStrategy(double* Tau, double* Eps, int size, double tau, double& tauP, double eps);
 
+//для 4 варика
 void Function_Two(double* vector_F, double* vector_U);
